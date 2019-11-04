@@ -12,7 +12,7 @@ class Redcase::ExecutionsuitesController < ApplicationController
 				.find_by_project_id(@project.id)
 			render :partial => 'redcase/execution_list'
 		else
-			logger.info "in exec suites index else"
+			#logger.info "in exec suites index else"
 			@environment = ExecutionEnvironment.find(params[:environment_id])
 			@version = Version.find(params[:version_id])
 			@root_execution_suite = ExecutionSuite.find_by_id(params[:suite_id])
@@ -36,8 +36,10 @@ class Redcase::ExecutionsuitesController < ApplicationController
 				end
 				relatedQueryStr += f.to_s
 			end
-			logger.info "related Query Str"
-			logger.info relatedQueryStr
+			#puts "before query"
+			#puts params.inspect
+			#logger.info "related Query Str"
+			#logger.info relatedQueryStr
 			sql = %{
 				Select r.issue_from_id, r.issue_to_id, t.name, i.subject, s.name As status  
 				From issue_relations r
@@ -48,10 +50,10 @@ class Redcase::ExecutionsuitesController < ApplicationController
 			}
 			begin
 				@relation_join = ActiveRecord::Base.connection.exec_query(sql)
-				logger.info "done relation join query"
-				@relation_join.each do |x|
-					logger.info x.inspect
-				end
+				#logger.info "done relation join query"
+				#@relation_join.each do |x|
+					#logger.info x.inspect
+				#end
 			rescue => e 
 				@relation_join = nil
 			end
@@ -61,8 +63,8 @@ class Redcase::ExecutionsuitesController < ApplicationController
 				params[:suite_id].to_i,
 				@project.id
 			)
-			logger.info "last results"
-			logger.info @results.inspect
+			#logger.info "last results"
+			#logger.info @results.inspect
 			render :partial => 'redcase/report_results'
 		end
 	end

@@ -5,25 +5,39 @@ class Redcase::TestcasesController < ApplicationController
 	before_filter :find_project, :authorize
 
 	def index
-		# TODO: What if there is none? r.issue_from_id, r.issue_to_id, t.name
-		sql = %{
-				Select r.issue_from_id, r.issue_to_id, t.name, i.subject, s.name As status  
-				From issue_relations r
-				Left Outer Join issues i On r.issue_to_id=i.id
-				Left Outer Join trackers t On i.tracker_id=t.id
-				Left Outer Join issue_statuses s on i.status_id=s.id
-				Where r.issue_from_id=#{params[:object_id]};
-			}
+		#puts "in relation"
+		#puts params.inspect
+		@issue = Issue.find(params[:object_id])
+		@relation = @issue.relations
+		relation_join1 = Array.new
+		@relation.each do |r|
+			tempHash = {}
+			tempIssue = r.other_issue(@issue)
+			tempHash["Name"] = tempIssue.tracker.name
+			tempHash["ID"] = tempIssue[:id]
+			tempHash["Subject"] = tempIssue[:subject]
+			tempHash["Status"] = tempIssue.status.name
+			relation_join1.push(tempHash)
+
+		end
+		# sql = %{
+		# 		Select r.issue_from_id, r.issue_to_id, t.name, i.subject, s.name As status  
+		# 		From issue_relations r
+		# 		Left Outer Join issues i On r.issue_to_id=i.id
+		# 		Left Outer Join trackers t On i.tracker_id=t.id
+		# 		Left Outer Join issue_statuses s on i.status_id=s.id
+		# 		Where r.issue_from_id=#{params[:object_id]}
+		# 		Or r.issue_to_id=#{params[:object_id]};
+		# 	}
 		test_case = TestCase.where({ issue_id: params[:object_id] }).first
-		relation_case = IssueRelation.where({issue_from_id: test_case.issue_id}, {relation_type: 'relates' })
-		relation_join = ActiveRecord::Base.connection.exec_query(sql)
+		# relation_join = ActiveRecord::Base.connection.exec_query(sql)
 		result = {}
 		curr_user = {}
 		curr_user[:id]=User.current.id
 		thename = User.current.firstname + " " +User.current.lastname
 		curr_user[:name]=thename
 		result[:test_casej]=test_case.to_json(view_context)
-		result[:relation_casej]=relation_join
+		result[:relation_casej]=relation_join1
 		result[:project_j]=@project
 		result[:current_userj]=curr_user
 		render :json => result
@@ -42,7 +56,7 @@ class Redcase::TestcasesController < ApplicationController
 
 	def update
 		# TODO: What if there is none?\
-		logger.info "in testcases update"
+		#logger.info "in testcases update"
 		test_case = TestCase.where({ issue_id: params[:id] }).first
 		if test_case.nil?
 			success = false
@@ -70,7 +84,7 @@ class Redcase::TestcasesController < ApplicationController
 			end
 		end
 		if params[:contextHook]=='yes'
-			logger.info "in context"
+			#logger.info "in context"
 			test_case.save
 			for i in 0..params[:add_id].count-1 do
 				if params[:add_id][i] != params[:id]
@@ -98,7 +112,7 @@ class Redcase::TestcasesController < ApplicationController
 	end
 
 	def execute(test_case)
-		logger.info "in testcases execute"
+		#logger.info "in testcases execute"
 		version = Version.find_by_name_and_project_id(
 			params[:version],
 			@project.id

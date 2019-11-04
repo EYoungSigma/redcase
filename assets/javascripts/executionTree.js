@@ -117,15 +117,15 @@ var RedcaseExecutionTree = function($) {
 						relateHtml = relateHtml + '<p><b>Related Issues:</b></p>';
 						relateHtml= relateHtml + '<table id="executionrelatedissues" class="list issues odd-even">' + '<tbody>';
 						jQuery.each(data.relation_casej, function(){
-							var testIssueUrl= getIssueUrl(this.issue_to_id);
+							var testIssueUrl= getIssueUrl(this.ID);
 							relateHtml=relateHtml+ '<tr class="executionissues"><td style="width: 25%; border-style: hidden"><a href='
 							+ testIssueUrl
 							+ '">'
-							+ this.name
-							+ '#' + this.issue_to_id
+							+ this.Name
+							+ '#' + this.ID
 							+ '</a></td>'
-							+ '<td style="width: 50%; border-style: hidden">'+ this.subject +'</td>'
-							+ '<td style="width: 25%; border-style: hidden">'+ this.status + '</td></tr>'
+							+ '<td style="width: 50%; border-style: hidden">'+ this.Subject +'</td>'
+							+ '<td style="width: 25%; border-style: hidden">'+ this.Status + '</td></tr>'
 
 						});
 						relateHtml = relateHtml+'</tbody></table>'
@@ -200,7 +200,6 @@ var RedcaseExecutionTree = function($) {
 	};
 
 	var getHistory = function(data) {
-		console.log(data);
 		var unique = {};
 		var txt = "<table id='redcase-history-table' class='redcase-row' width='100%'>"
 			+ "<tr style='font-weight: bold; background-color: #eeeeee'>"

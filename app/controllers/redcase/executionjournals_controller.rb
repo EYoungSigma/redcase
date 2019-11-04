@@ -16,35 +16,41 @@ class Redcase::ExecutionjournalsController < ApplicationController
 
 	def update
 		if (params[:extension_form]=="extension")
-			puts "in journo update if"
-			logger.info "in journo update if"
+			#puts "in journo update if"
+			#logger.info "in journo update if"
+			@issue = Issue.find(params[:id])
+			#puts @issue.inspect
+			#puts params.inspect
+			@issue.save_attachments(params[:attachments] || (params[:issue] && params[:issue][:uploads]))
+			@issue.save
 			@project = Project.find(params[:project_id])
-			formDigest = params[:attachments]["1"]["token"]
-			digestChar = formDigest.slice!(0)
-			while digestChar != '.'
-				digestChar = formDigest.slice!(0)
-			end
-			sql = %{
-				Select * 
-				From attachments a
-				Where a.filename='#{params[:attachments]["1"]["filename"]}'
-				And a.digest = '#{formDigest}'
-				And a.container_id IS NULL
-				And a.container_type IS NULL
-				Order By a.id desc;
-			}
-			attachEntry = ActiveRecord::Base.connection.exec_query(sql)
-			logger.info "After attachment lookup"
-			attachEntry.each do |x|
-				logger.info x.inspect
-			end
-			theAttach=Attachment.find_by(id:attachEntry[0]["id"])
-			theAttach.container_id=params[:id]
-			theAttach.container_type = "Issue"
-			theAttach.save
+			# formDigest = params[:attachments]["1"]["token"]
+			# digestChar = formDigest.slice!(0)
+			# while digestChar != '.'
+			# 	digestChar = formDigest.slice!(0)
+			# end
+			# sql = %{
+			# 	Select * 
+			# 	From attachments a
+			# 	Where a.filename='#{params[:attachments]["1"]["filename"]}'
+			# 	And a.digest = '#{formDigest}'
+			# 	And a.container_id IS NULL
+			# 	And a.container_type IS NULL
+			# 	Order By a.id desc;
+			# }
+			# attachEntry = ActiveRecord::Base.connection.exec_query(sql)
+			# logger.info "After attachment lookup"
+			# attachEntry.each do |x|
+			# 	logger.info x.inspect
+			# end
+			# #puts params[:]
+			# theAttach=Attachment.find_by(id:attachEntry[0]["id"])
+			# theAttach.container_id=params[:id]
+			# theAttach.container_type = "Issue"
+			# theAttach.save
 			redirect_to "/projects/#{params[:project_id]}/redcase?tab=Execution" and return
 		elsif (params[:extension_form]=="editing")
-			logger.info "in journo update else (editing)"
+			#logger.info "in journo update else (editing)"
 			theDate = params[:extension_date]
 			theDateDay = theDate.slice!(0..1).to_i
 			theDate.slice!(0)
@@ -69,8 +75,8 @@ class Redcase::ExecutionjournalsController < ApplicationController
 				And e.executor_id=#{params[:extension_user_id]};
 			}
 			toEditEntry = ActiveRecord::Base.connection.exec_query(sql)
-			logger.info "after journo lookup"
-			logger.info toEditEntry.inspect
+			#logger.info "after journo lookup"
+			#logger.info toEditEntry.inspect
 			if toEditEntry.count == 1
 				theJournalResults = ExecutionResult.where("name=?", params[:results_edit])
 				editedResult= theJournalResults[0][:id]
@@ -86,8 +92,8 @@ class Redcase::ExecutionjournalsController < ApplicationController
 					And j.user_id=#{params[:extension_user_id]};
 				}
 				toEditIssueJournal = ActiveRecord::Base.connection.exec_query(sql)
-				logger.info "after second journo lookup"
-				logger.info toEditIssueJournal.inspect
+				#logger.info "after second journo lookup"
+				#logger.info toEditIssueJournal.inspect
 				if toEditIssueJournal.count==1
 					toEditIJournal = Journal.find(toEditIssueJournal[0]["id"])
 					toEditIJournal.notes = editedComment
@@ -105,8 +111,8 @@ class Redcase::ExecutionjournalsController < ApplicationController
 			else
 				#TODO more than one exec journal with the time stamp
 			end
-			logger.info "before redirect"
-			logger.info params[:project_id]
+			#logger.info "before redirect"
+			#logger.info params[:project_id]
 			redirect_to "/projects/#{params[:project_id]}/redcase?tab=Execution" and return
 		end
 	end
