@@ -12,3 +12,5 @@ environments, create reports, and more.
 Please see the project's [Wiki](https://bitbucket.org/bugzinga/redcase/wiki) for
 more information.
 
+*Modified for use by Sigma Design by Ethan Young
+
