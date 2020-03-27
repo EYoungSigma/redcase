@@ -1,3 +1,8 @@
+#***************************
+#NOTICE
+#This File has been modified from it's original form for use by Sigma Design 
+#by Ethan Young
+#****************************
 module Redcase
 	module Hooks
 		class ControllerRedcaseExtensionIssuesHook < Redmine::Hook::ViewListener

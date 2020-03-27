@@ -1,4 +1,8 @@
-
+#***************************
+#NOTICE
+#This File has been modified from it's original form for use by Sigma Design 
+#by Ethan Young
+#****************************
 # TODO: "Combos" is not business case specific name, we need to come up with a
 #       better one. As this controller generates output for reports, it could be
 #       ReportController which would had two separate methods to generate two

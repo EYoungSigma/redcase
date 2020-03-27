@@ -1,4 +1,8 @@
-
+#***************************
+#NOTICE
+#This File has been modified from it's original form for use by Sigma Design 
+#by Ethan Young
+#****************************
 class Redcase::TestsuitesController < ApplicationController
 
 	unloadable
