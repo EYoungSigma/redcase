@@ -111,6 +111,14 @@ var RedcaseApi = function($) {
 			};
 		};
 
+		this.update = function(){
+			return {
+				method: self.controller,
+				httpMethod: 'PUT'
+			};
+
+		};
+
 
 	};
 

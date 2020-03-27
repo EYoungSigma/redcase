@@ -38,7 +38,7 @@ var RedcaseExecutionTree = function($) {
 						)
 					);
 					selectNextNode();
-					$('#exec-comment').val('');
+					//$('#exec-comment').val('');
 					// TODO: When a user executes a test case, the results
 					//       are getting updated and we need to refresh
 					//       the Report tab as well. Triggering combo
@@ -53,7 +53,61 @@ var RedcaseExecutionTree = function($) {
 		Redcase.api.apiCall(apiParams);
 	};
 
+	var updateSelection = function() {
+		var issueId = currentIssueId;
+		if (!issueId) {
+			// TODO: Log something.
+			return;
+		}
+		var selectedNode = tree.get_node(tree.get_selected(true)[0], true);
+		// //var result = $('#results').val();
+		// var apiParams = $.extend(
+		// 	{},
+		// 	Redcase.api.executionjournal.update(), {
+		// 		params: {
+		// 			version: 
+		// 		},
+		// 		success: function(data){
+
+		// 			tree.select_node(selectedNode);
+		// 		},
+		// 		errorMessage: 'Execution failed'
+
+		// 	}
+		// );
+		// Redcase.api.apiCall(apiParams);
+		
+	};
+
 	var build = function(params) {
+		var optionCounter=0;
+		var versionParam = getUrlParam('version', 'Empty');
+		var suiteParam = getUrlParam('suite', 'Empty');
+		var environmentParam = getUrlParam('environment', 'Empty');
+		versionParam = parseUrlParam(versionParam);
+		suiteParam = parseUrlParam(suiteParam);
+		environmentParam = parseUrlParam(environmentParam);
+		// var versionFlag = false;
+		// var suiteFlag = false;
+		// var enviornmentFlag = false;
+		//console.log('option length ' +document.getElementById("version").options.length);
+		setDropdowns("list2_id", suiteParam);
+		setDropdowns("version",versionParam);
+		setDropdowns("environments", environmentParam);
+		
+		// for (optionCounter=0; optionCounter<document.getElementById("version").options.length; optionCounter++){
+		// 	console.log('op: '+document.getElementById("version").options[optionCounter].text);
+		// 	if (document.getElementById("version").options[optionCounter].text == testVar){
+		// 		console.log("in if");
+		 		// document.getElementById("list2_id").value="Root";
+		 		// var x = document.getElementById("list2_id").value;
+		 		// console.log('x: '+x);
+		// 		versionFlag=true;
+		// 	}
+			
+		// }
+		//console.log('versionflag: '+versionFlag);
+		//console.log('testVar '+testVar);
 		tree = $('#execution_test_cases_tree_id').jstree({
 			core: {
 				check_callback: function() {
@@ -77,6 +131,7 @@ var RedcaseExecutionTree = function($) {
 				multiple: false
 			}
 		});
+		// var y = document.getElementById("list2_id").value;
 		tree.on('select_node.jstree', selectionChange);
 		tree = $.jstree.reference(tree);
 	};
@@ -104,6 +159,15 @@ var RedcaseExecutionTree = function($) {
 						var relat= $('#test-case-related');
 						var attachFormUri = "redcase/executionjournals/"+currentIssueId;
 						document.getElementById("extensionAttachForm").action = attachFormUri;
+						var suite_drop = document.getElementById("list2_id");
+						var version_drop = document.getElementById("version");
+						var environment_drop = document.getElementById("environments");
+						var suite_select = suite_drop.options[suite_drop.selectedIndex].text;
+						var version_select = version_drop.options[version_drop.selectedIndex].text;
+						var environment_select = environment_drop.options[environment_drop.selectedIndex].text;
+						document.getElementById("suite_url").value = suite_select;
+						document.getElementById("version_url").value = version_select;
+						document.getElementById("environment_url").value = environment_select;
 						var relateHtml="";
 						var issueUrl = getIssueUrl(data.test_casej.issue_id);
 						subj.html(
@@ -118,14 +182,26 @@ var RedcaseExecutionTree = function($) {
 						relateHtml= relateHtml + '<table id="executionrelatedissues" class="list issues odd-even">' + '<tbody>';
 						jQuery.each(data.relation_casej, function(){
 							var testIssueUrl= getIssueUrl(this.ID);
-							relateHtml=relateHtml+ '<tr class="executionissues"><td style="width: 25%; border-style: hidden"><a href='
-							+ testIssueUrl
-							+ '">'
-							+ this.Name
-							+ '#' + this.ID
-							+ '</a></td>'
-							+ '<td style="width: 50%; border-style: hidden">'+ this.Subject +'</td>'
-							+ '<td style="width: 25%; border-style: hidden">'+ this.Status + '</td></tr>'
+							if(this.Status=='Closed'||this.Status=='closed'){
+								relateHtml=relateHtml+ '<tr class="executionissues"><td style="width: 25%; border-style: hidden"><strike><a href='
+								+ testIssueUrl
+								+ '">'
+								+ this.Name
+								+ '#' + this.ID
+								+ '</a></td></strike>'
+								+ '<td style="width: 50%; border-style: hidden"><strike>'+ this.Subject +'</strike></td>'
+								+ '<td style="width: 25%; border-style: hidden"><strike>'+ this.Status + '</strike></td></tr>'
+
+							}else{
+								relateHtml=relateHtml+ '<tr class="executionissues"><td style="width: 25%; border-style: hidden"><a href='
+								+ testIssueUrl
+								+ '">'
+								+ this.Name
+								+ '#' + this.ID
+								+ '</a></td>'
+								+ '<td style="width: 50%; border-style: hidden">'+ this.Subject +'</td>'
+								+ '<td style="width: 25%; border-style: hidden">'+ this.Status + '</td></tr>'
+							}
 
 						});
 						relateHtml = relateHtml+'</tbody></table>'
@@ -326,4 +402,42 @@ function execJournalEditor(journalnum){
 function journalEditorDisplay(thedisplay){
 	var x = document.getElementById("executionjournalediting");
 	x.style.display=thedisplay
+}
+
+function getUrlParam(parameter, defaultValue){
+	var urlparameter = defaultValue;
+ 	if(window.location.href.indexOf(parameter) > -1){
+        urlparameter = getUrlVars()[parameter];
+    }
+    return urlparameter;
+}
+
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
+function parseUrlParam(parameter){
+	var parsedParam = parameter;
+	var arrayParam = parsedParam.split("_");
+	parsedParam='';
+	arrayParam.forEach(function(element){
+		parsedParam=parsedParam.concat(element,' ');
+	});
+
+	parsedParam = parsedParam.slice(0,-1);
+	return parsedParam;
+}
+
+function setDropdowns(parameter, paramVal){
+	var optionCounter;
+	for (optionCounter=0; optionCounter<document.getElementById(parameter).options.length; optionCounter++){
+			if (document.getElementById(parameter).options[optionCounter].text == paramVal){
+				document.getElementById(parameter).selectedIndex=optionCounter;
+			}
+			
+		}
 }

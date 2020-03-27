@@ -29,6 +29,9 @@
 					<%= form_tag(project_redcase_executionjournal_path(1,1), {:method=> 'patch', :id=> "extensionAttachForm"}) do%>
 						<%= render :partial => 'attachments/form', :locals => {:container => @issue} %>
 						<%= hidden_field_tag "extension_form", "extension" %>
+						<%= hidden_field_tag "suite_url", "Root" %>
+						<%= hidden_field_tag "version_url", "test version" %>
+						<%= hidden_field_tag "environment_url", "testenv" %>
 						<%= submit_tag("Submit") %>
 					<% end %>
 				</div>

@@ -5,6 +5,7 @@ class Redcase::ExecutionsuitesController < ApplicationController
 	before_filter :find_project, :authorize
 
 	def index
+		@resultArr = []
 		if params[:get_results].nil?
 			@list2 = ExecutionSuite.find_by_project_id(@project.id)
 			@version = Version
@@ -30,32 +31,73 @@ class Redcase::ExecutionsuitesController < ApplicationController
 				end
 			end
 			relatedQueryStr = ""
-			failArr.each do |f|
-				if relatedQueryStr != ""
-					relatedQueryStr += ", "
-				end
-				relatedQueryStr += f.to_s
-			end
-			#puts "before query"
-			#puts params.inspect
 			#logger.info "related Query Str"
 			#logger.info relatedQueryStr
+			relatedArr = []
+			queryArr = []
+			@issue = Issue.find(failArr)
+			@issue.each do |i|
+				relatedArr.push(i.id)
+				@relation = i.relations
+				@relation.each do |r|
+					if (r.issue_from_id == i.id)
+						relatedArr.push(r.issue_to_id)
+						queryArr.push(r.issue_to_id)
+					else
+						relatedArr.push(r.issue_from_id)
+						queryArr.push(r.issue_from_id)
+					end
+
+
+				end
+			end
+			queryArr.each do |q|
+				if relatedQueryStr !=""
+					relatedQueryStr += ", "
+				end
+				relatedQueryStr += q.to_s
+
+
+			end
 			sql = %{
-				Select r.issue_from_id, r.issue_to_id, t.name, i.subject, s.name As status  
-				From issue_relations r
-				Left Outer Join issues i On r.issue_to_id=i.id
+				Select i.id, t.name, i.subject, s.name As status  
+				From issues i 
 				Left Outer Join trackers t On i.tracker_id=t.id
 				Left Outer Join issue_statuses s on i.status_id=s.id
-				Where r.issue_from_id In (#{relatedQueryStr});
+				Where i.id In (#{relatedQueryStr})
+				And t.name='Bugs'
+				And s.name !='Closed';
 			}
 			begin
 				@relation_join = ActiveRecord::Base.connection.exec_query(sql)
 				#logger.info "done relation join query"
-				#@relation_join.each do |x|
-					#logger.info x.inspect
-				#end
+				@resultArr = []
+				@relation_join.each do |x|
+					flagTest = false
+					tempHash = Hash[x]
+					currentId = x["id"]
+					failFlag = failArr[0]
+					relatedArr.each do |a|
+						failArr.each do |b|
+							if(b==a)
+								flagTest = true
+							end
+						end
+						if(flagTest==true)
+							failFlag = a
+							flagTest= false
+						end
+						if (a==currentId.to_i)
+							tempHash["test_case"]=failFlag
+							@resultArr.push(tempHash)
+							break
+						end
+					end
+				end
+				
 			rescue => e 
 				@relation_join = nil
+				#@result_arr = nil
 			end
 			@results = ExecutionSuite.get_results(
 				@environment,
@@ -65,6 +107,8 @@ class Redcase::ExecutionsuitesController < ApplicationController
 			)
 			#logger.info "last results"
 			#logger.info @results.inspect
+			@resultArr = @resultArr.to_a
+			
 			render :partial => 'redcase/report_results'
 		end
 	end

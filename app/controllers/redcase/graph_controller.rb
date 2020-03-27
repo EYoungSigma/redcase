@@ -25,6 +25,7 @@ class Redcase::GraphController < ApplicationController
 			@project.id,
 			params[:full_check]
 		)
+		#puts get_json(graph_data)
 		render :json => get_json(graph_data)
 	end
 

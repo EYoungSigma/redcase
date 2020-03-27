@@ -15,6 +15,7 @@ class Redcase::ExecutionjournalsController < ApplicationController
 	end
 
 	def update
+		puts "in update controller"
 		if (params[:extension_form]=="extension")
 			#puts "in journo update if"
 			#logger.info "in journo update if"
@@ -24,6 +25,15 @@ class Redcase::ExecutionjournalsController < ApplicationController
 			@issue.save_attachments(params[:attachments] || (params[:issue] && params[:issue][:uploads]))
 			@issue.save
 			@project = Project.find(params[:project_id])
+			suite = params[:suite_url]
+			version = params[:version_url]
+			environment = params[:environment_url]
+			parse_suite=suite.gsub(' ', '_')
+			parse_version =version.gsub(' ', '_')
+			parse_environment=environment.gsub(' ', '_')
+			puts "suite: "+parse_suite
+			puts "version: "+parse_version
+			puts "environment: "+parse_environment
 			# formDigest = params[:attachments]["1"]["token"]
 			# digestChar = formDigest.slice!(0)
 			# while digestChar != '.'
@@ -48,7 +58,8 @@ class Redcase::ExecutionjournalsController < ApplicationController
 			# theAttach.container_id=params[:id]
 			# theAttach.container_type = "Issue"
 			# theAttach.save
-			redirect_to "/projects/#{params[:project_id]}/redcase?tab=Execution" and return
+			redirect_to "/projects/#{params[:project_id]}/redcase?tab=Execution&suite=#{parse_suite}&version=#{parse_version}&environment=#{parse_environment}" and return
+			#return
 		elsif (params[:extension_form]=="editing")
 			#logger.info "in journo update else (editing)"
 			theDate = params[:extension_date]

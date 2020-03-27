@@ -43,6 +43,7 @@ class RedcaseController < ApplicationController
 			@project.id
 		)
 
+			@resultArr = []
 			failID= nil
 			failArr = []
 			@results.each do |er|
@@ -51,26 +52,72 @@ class RedcaseController < ApplicationController
 				end
 			end
 			relatedQueryStr = ""
-			failArr.each do |f|
-				if relatedQueryStr != ""
+			relatedArr = []
+			queryArr = []
+			@theIssue = Issue.find(failArr)
+			@theIssue.each do |i|
+				relatedArr.push(i.id)
+				@relation = i.relations
+				@relation.each do |r|
+					if (r.issue_from_id == i.id)
+						relatedArr.push(r.issue_to_id)
+						queryArr.push(r.issue_to_id)
+					else
+						relatedArr.push(r.issue_from_id)
+						queryArr.push(r.issue_from_id)
+					end
+
+
+				end
+			end
+			queryArr.each do |q|
+				if relatedQueryStr !=""
 					relatedQueryStr += ", "
 				end
-				relatedQueryStr += f.to_s
+				relatedQueryStr += q.to_s
+
+
 			end
 
 			sql = %{
-				Select r.issue_from_id, r.issue_to_id, t.name, i.subject, s.name As status  
-				From issue_relations r
-				Left Outer Join issues i On r.issue_to_id=i.id
+				Select i.id, t.name, i.subject, s.name As status  
+				From issues i 
 				Left Outer Join trackers t On i.tracker_id=t.id
 				Left Outer Join issue_statuses s on i.status_id=s.id
-				Where r.issue_from_id In (#{relatedQueryStr});
+				Where i.id In (#{relatedQueryStr})
+				And t.name='Bugs'
+				And s.name !='Closed';
 			}
 			begin
 				@relation_join = ActiveRecord::Base.connection.exec_query(sql)
+				@relation_join.each do |x|
+					flagTest = false
+					tempHash = Hash[x]
+					currentId = x["id"]
+					failFlag = failArr[0]
+					relatedArr.each do |a|
+						failArr.each do |b|
+							if(b==a)
+								flagTest = true
+							end
+						end
+						if(flagTest==true)
+							failFlag = a
+							flagTest= false
+						end
+						if (a==currentId.to_i)
+							tempHash["test_case"]=failFlag
+							@resultArr.push(tempHash)
+							break
+						end
+					end
+				end
+				@resultArr.each do |y|
+				end
 			rescue => e 
 				@relation_join = nil
 			end
+			@resultArr = @resultArr.to_a
 			@results = ExecutionSuite.get_results(
 			@environment,
 			# FIXME: The page can be opened when the project has no versions
